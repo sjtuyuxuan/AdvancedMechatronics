@@ -36,6 +36,11 @@
 
 #define OUT_LEN 255
 
+#define IODIR 0x00
+#define GPIO 0x09
+#define OLAT 0x0A
+#define ADDRESS 0b01000000
+
 void Timer1Init (void);
 void ButtomInit (void);
 void LEDInit (void);
@@ -84,7 +89,7 @@ int main() {
 
     // disable JTAG to get pins back
     DDPCONbits.JTAGEN = 0;
-
+    
     // do your TRIS and LAT commands here
  
     U1RXRbits.U1RXR = 0b0000; // Set A2 to U1RX
@@ -120,10 +125,17 @@ int main() {
             sprintf (output_str, "Blink! %d th \r\n", time++);
             WriteUART(output_str);
         } // use Timer1
+        
+        // hw6
+        _CP0_SET_COUNT(0); // reset core timer
+        LATAbits.LATA4 = !LATAbits.LATA4;
+        while (_CP0_GET_COUNT() < 6000000) ;
 
-    // hw6
-    if (mcp_read(0b01000000, 0x09) & 1 == 0) mcp_write(0b01000000, 0x0A, 0b10000000);
-    else mcp_write(0b01000000, 0x0A, 0b00000000);
+        unsigned char r = mcp_read(0b01000000, 0x09);
+        r &= 1;
+        if (r == 1) mcp_write(0b01000000, 0x0A, 0b10000000);
+        else mcp_write(0b01000000, 0x0A, 0b00000000);
+        
     }
 }
 
@@ -140,7 +152,7 @@ void Timer1Init (void) {
 
 void __ISR(_TIMER_1_VECTOR, IPL4SOFT) Tic(void) {
     static int count = 0;
-    if (/* buttom_flag != 0  && */count == 0) {
+    if ( buttom_flag != 0  && count == 0) {
         count = 2000;
         LATAbits.LATA4 = 1;
     }
