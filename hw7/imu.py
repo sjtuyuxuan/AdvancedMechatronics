@@ -5,7 +5,7 @@
 # sudo apt-get install python-matplotlib
 
 import serial
-ser = serial.Serial('COM5',230400)
+ser = serial.Serial('/dev/ttyTHS0',230400)
 print('Opening port: ')
 print(ser.name)
 
@@ -47,15 +47,17 @@ def CF (raw_data, A=0.02, dt=0.01):
     cfR = []
     for i in range(len(gx)):
         accP.append(math.degrees(math.atan2(ay[i],az[i])))
-        accR.append(math.degrees(math.atan2(ax[i],az[i])))
+        accR.append(math.degrees(-math.atan2(ax[i],az[i])))
         if i==0:
             gP.append(accP[0])
             gR.append(accR[0])
+            cfP.append(accP[0])
+            cfR.append(accR[0])
         else:
-            gP.append(gp[-1] + dt * gx[i-1])
+            gP.append(gP[-1] + dt * gx[i-1])
             gR.append(gR[-1] + dt * gy[i-1])
-        cfP.append((1-A) * (cfP[-1] + dt * gx[i-1]) + A*accP[-1])
-        cfR.append((1-A) * (cfR[-1] + dt * gy[i-1]) + A*accR[-1])
+            cfP.append((1-A) * (cfP[-1] + dt * gx[i-1]) + A*accP[-1])
+            cfR.append((1-A) * (cfR[-1] + dt * gy[i-1]) + A*accR[-1])
     return (accP, accR, gP, gR, cfP, cfR)
     
 
